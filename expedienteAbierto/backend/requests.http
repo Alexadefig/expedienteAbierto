@@ -1,0 +1,163 @@
+@baseUrl = http://localhost:3000
+
+@casoNiebla = eb04e27c489e40b59a82eff7
+@usuarioDemo = 98c62e5312a34b30be1eceeb
+
+
+### GENERAL
+
+### Raíz de la API
+GET {{baseUrl}}/
+
+### Health check
+GET {{baseUrl}}/api/health
+
+
+### CASOS
+
+### 1. Listar todos los casos
+GET {{baseUrl}}/api/casos
+
+### 2. Listar casos filtrando por dificultad
+GET {{baseUrl}}/api/casos?dificultad=media
+
+### 3. Obtener un caso concreto (El Caso Niebla)
+GET {{baseUrl}}/api/casos/{{casoNiebla}}
+
+### 4. Sospechosos de un caso
+GET {{baseUrl}}/api/casos/{{casoNiebla}}/sospechosos
+
+### 5. Objetivos de un caso (ordenados)
+GET {{baseUrl}}/api/casos/{{casoNiebla}}/objetivos
+
+### 6. Crear un caso nuevo
+# @name crearCaso
+POST {{baseUrl}}/api/casos
+Content-Type: application/json
+
+{
+  "codigo": "EXP-0100",
+  "titulo": "La Sombra del Faro",
+  "descripcion": "El farero de Punta Gris desaparece durante la tormenta. La lámpara sigue encendida y la puerta está atrancada por dentro.",
+  "victima": "Tomás Ibarra (desaparecido)",
+  "ubicacion": "Faro de Punta Gris",
+  "fechaDelCrimen": "2026-11-12T23:30:00Z",
+  "dificultad": "alta",
+  "estado": "borrador",
+  "imagenPortada": "assets/sombra-faro.jpg"
+}
+
+### 7. Actualizar el caso creado
+@nuevoCasoId = {{crearCaso.response.body.data._id}}
+PUT {{baseUrl}}/api/casos/{{nuevoCasoId}}
+Content-Type: application/json
+
+{
+  "estado": "disponible",
+  "dificultad": "media"
+}
+
+### 8. Obtener el caso actualizado
+GET {{baseUrl}}/api/casos/{{nuevoCasoId}}
+
+### 9. Eliminar el caso creado
+DELETE {{baseUrl}}/api/casos/{{nuevoCasoId}}
+
+
+### USUARIOS
+
+### 10. Listar usuarios
+GET {{baseUrl}}/api/usuarios
+
+### 11. Obtener un usuario
+GET {{baseUrl}}/api/usuarios/{{usuarioDemo}}
+
+### 12. Crear usuario
+# @name crearUsuario
+POST {{baseUrl}}/api/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Inspectora Lara",
+  "email": "inspectora.lara@example.com",
+  "password": "secreto123",
+  "preferencias": { "sonido": false, "animaciones": true }
+}
+
+### 13. Actualizar usuario
+@nuevoUsuarioId = {{crearUsuario.response.body.data._id}}
+PUT {{baseUrl}}/api/usuarios/{{nuevoUsuarioId}}
+Content-Type: application/json
+
+{
+  "nombre": "Inspectora Lara Ruiz",
+  "preferencias": { "sonido": true, "animaciones": true }
+}
+
+### 14. Eliminar usuario
+DELETE {{baseUrl}}/api/usuarios/{{nuevoUsuarioId}}
+
+### 15. Poner contraseña real al usuario demo
+PUT {{baseUrl}}/api/usuarios/{{usuarioDemo}}
+Content-Type: application/json
+
+{
+  "password": "demo1234"
+}
+
+
+### ERRORES ESPERADOS
+
+### E1. 404 · Ruta que no existe
+GET {{baseUrl}}/api/no-existe
+
+### E2. 400 · Id con formato incorrecto
+GET {{baseUrl}}/api/casos/1234
+
+### E3. 404 · Id válido pero inexistente
+GET {{baseUrl}}/api/casos/000000000000000000000000
+
+### E4. 400 · Validación (faltan campos obligatorios y dificultad inválida)
+POST {{baseUrl}}/api/casos
+Content-Type: application/json
+
+{
+  "codigo": "EXP-0101",
+  "dificultad": "imposible"
+}
+
+### E5. 409 · Código de caso duplicado
+POST {{baseUrl}}/api/casos
+Content-Type: application/json
+
+{
+  "codigo": "EXP-0087",
+  "titulo": "Duplicado",
+  "descripcion": "Este código ya existe"
+}
+
+### E6. 400 · JSON mal formado
+POST {{baseUrl}}/api/casos
+Content-Type: application/json
+
+{ "codigo": "EXP-0102", }
+
+### E7. 400 · Contraseña demasiado corta
+POST {{baseUrl}}/api/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Corto",
+  "email": "corto@example.com",
+  "password": "123"
+}
+
+### E8. 409 · Email duplicado
+POST {{baseUrl}}/api/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Duplicado",
+  "email": "detective.demo@example.com",
+  "password": "secreto123"
+}
